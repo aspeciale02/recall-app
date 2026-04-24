@@ -64,9 +64,15 @@ export default function VoiceTestTab({ course, topics, questions, userId, onTopi
     setVoiceSupported(supported)
   }, [])
 
-  const shuffledQuestions = useMemo(() => {
-    return [...questions].sort(() => Math.random() - 0.5)
-  }, [questions])
+  const shuffledRef = useRef<typeof questions>([])
+  const prevLengthRef = useRef(0)
+
+  if (questions.length !== prevLengthRef.current) {
+    shuffledRef.current = [...questions].sort(() => Math.random() - 0.5)
+    prevLengthRef.current = questions.length
+  }
+
+  const shuffledQuestions = shuffledRef.current
 
   const currentQuestion = shuffledQuestions[currentIdx]
 

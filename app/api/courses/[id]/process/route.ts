@@ -107,7 +107,11 @@ Content: ${truncatedContent}`,
 
     const admin = createAdminClient()
 
+    // Delete existing topics for this course (questions cascade-delete via FK)
+    await admin.from('topics').delete().eq('course_id', courseId)
+
     // Save topics and questions
+    let topicsCreated = 0
     for (const topicData of extracted.topics) {
       const { data: topic, error: topicError } = await admin
         .from('topics')
@@ -124,6 +128,8 @@ Content: ${truncatedContent}`,
         console.error('Topic insert error:', topicError)
         continue
       }
+
+      topicsCreated++
 
       // Insert questions
       const questionsToInsert = (topicData.questions || []).map(q => ({
@@ -188,7 +194,7 @@ Content: ${truncatedContent}`,
 
     return NextResponse.json({
       success: true,
-      topicsCreated: extracted.topics.length,
+      topicsCreated,
       questionsCreated: extracted.topics.reduce((sum, t) => sum + (t.questions?.length ?? 0), 0),
       planDays: planDays.length,
     })

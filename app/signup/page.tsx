@@ -11,6 +11,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [success, setSuccess] = useState(false)
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -19,7 +20,7 @@ export default function SignupPage() {
     setError('')
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -33,10 +34,16 @@ export default function SignupPage() {
       return
     }
 
-    setSuccess(true)
     setLoading(false)
-    // Try to navigate directly to dashboard
-    setTimeout(() => router.push('/dashboard'), 1500)
+
+    if (data.session) {
+      // Email confirmation disabled — user is already logged in
+      router.push('/dashboard')
+    } else {
+      // Email confirmation required
+      setSuccess(true)
+      setMessage('Check your email to confirm your account before signing in.')
+    }
   }
 
   return (
@@ -54,7 +61,7 @@ export default function SignupPage() {
           {success ? (
             <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 text-center">
               <p className="text-green-400 font-medium">Account created!</p>
-              <p className="text-gray-400 text-sm mt-1">Redirecting to dashboard...</p>
+              {message && <p className="text-gray-400 text-sm mt-1">{message}</p>}
             </div>
           ) : (
             <form onSubmit={handleSignup} className="space-y-4">

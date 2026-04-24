@@ -42,14 +42,17 @@ export default async function CoursePage({ params }: Props) {
     .eq('course_id', id)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
 
-  const { data: answers } = await supabase
+  const questionIds = questions?.map(q => q.id) ?? []
+
+  const { data: answers } = questionIds.length > 0 ? await supabase
     .from('answers')
     .select('*, questions(topic_id)')
     .eq('user_id', user.id)
+    .in('question_id', questionIds)
     .order('created_at', { ascending: false })
-    .limit(100)
+    .limit(100) : { data: [] }
 
   return (
     <CourseClient

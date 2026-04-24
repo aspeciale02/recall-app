@@ -10,7 +10,7 @@ const anthropic = new Anthropic({
 function getNextReviewAt(score: number): string {
   const now = new Date()
   let daysToAdd = 1
-  if (score > 80) daysToAdd = 7
+  if (score >= 80) daysToAdd = 7
   else if (score >= 50) daysToAdd = 3
   else daysToAdd = 1
 
@@ -115,7 +115,8 @@ Return ONLY valid JSON, no markdown:
       })
 
     if (answerError) {
-      console.error('Answer save error:', answerError)
+      console.error('Failed to save answer:', answerError)
+      return NextResponse.json({ error: 'Failed to save answer' }, { status: 500 })
     }
 
     // Update question stats
