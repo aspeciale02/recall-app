@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Recall — AI Voice Study App
 
-## Getting Started
+Upload lectures. Set your exam date. Recall builds your study plan and tests you with your voice until you're ready.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 16 App Router + TypeScript
+- Tailwind CSS
+- Supabase (auth + PostgreSQL)
+- Claude API (claude-sonnet-4-6) — topic extraction, question generation, grading
+- Web Speech API — browser-native voice input
+- pdf-parse — server-side PDF text extraction
+- Vercel — deployment
+
+## Setup
+
+### 1. Supabase
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Run the migration at `supabase/migrations/001_init.sql` in the Supabase SQL editor
+3. Get your project URL, anon key, and service role key from Settings > API
+
+### 2. Environment variables
+
+Copy `env.template` to `.env.local` and fill in:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Add the same vars to Vercel:
+```bash
+npx vercel env add NEXT_PUBLIC_SUPABASE_URL
+npx vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
+npx vercel env add SUPABASE_SERVICE_ROLE_KEY
+npx vercel env add ANTHROPIC_API_KEY
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Local dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+## Features
 
-To learn more about Next.js, take a look at the following resources:
+- **Auth** — email/password via Supabase
+- **Course creation** — name + exam date in 2 steps
+- **Document upload** — PDF text extraction + image support
+- **AI processing** — Claude extracts 5-10 topics + 5 questions per topic
+- **Study plan** — day-by-day schedule from today to exam date
+- **Practice tab** — text Q&A with Claude grading (0-100 score + feedback)
+- **Voice test tab** — speak answers via Web Speech API, Claude grades reasoning quality
+- **Progress tab** — readiness score, topic mastery bars, weak spots, streak counter
+- **Spaced repetition** — questions reschedule based on score (1/3/7 days)
+- **RLS** — all data is user-scoped in Supabase
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+App is live at: https://recall-app-taupe.vercel.app
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To redeploy:
+```bash
+npx vercel --prod
+```
