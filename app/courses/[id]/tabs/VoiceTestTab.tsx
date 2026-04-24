@@ -66,7 +66,7 @@ export default function VoiceTestTab({ course, topics, questions, userId, onTopi
 
   const shuffledQuestions = useMemo(() => {
     return [...questions].sort(() => Math.random() - 0.5)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [questions])
 
   const currentQuestion = shuffledQuestions[currentIdx]
 

@@ -68,7 +68,10 @@ Return ONLY valid JSON, no markdown:
       ],
     })
 
-    const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
+    const responseText = message.content?.[0]?.type === 'text' ? (message.content[0] as {type: 'text', text: string}).text : ''
+    if (!responseText) {
+      throw new Error('Empty response from Claude')
+    }
 
     let gradeResult: {
       score: number
@@ -103,7 +106,7 @@ Return ONLY valid JSON, no markdown:
       .from('answers')
       .insert({
         question_id: questionId,
-        user_id: userId || user.id,
+        user_id: user.id,
         answer_text: studentAnswer,
         is_voice: isVoice,
         score,

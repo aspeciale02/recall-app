@@ -93,16 +93,19 @@ End date: ${endDate}`,
       // Fallback: generate a simple plan
       const plan: PlanDay[] = []
       const topicNames = topics.map(t => t.name)
-      const topicsPerDay = Math.max(1, Math.ceil(topicNames.length / Math.min(daysUntilExam, topicNames.length)))
+      const totalDays = Math.min(daysUntilExam, 30)
 
-      for (let i = 0; i < Math.min(daysUntilExam, 30); i++) {
+      for (let i = 0; i < totalDays; i++) {
         const d = new Date(today)
         d.setDate(d.getDate() + i)
-        const start = (i * topicsPerDay) % topicNames.length
+        const startIdx = (i * Math.ceil(topicNames.length / totalDays)) % topicNames.length
+        const endIdx = Math.min(startIdx + Math.ceil(topicNames.length / totalDays), topicNames.length)
+        const sliced = topicNames.slice(startIdx, endIdx)
+        const dayTopics = sliced.length > 0 ? sliced : [topicNames[i % topicNames.length]]
         plan.push({
           date: d.toISOString().split('T')[0],
-          topics: topicNames.slice(start, start + topicsPerDay),
-          question_count: topicsPerDay * 3,
+          topics: dayTopics,
+          question_count: dayTopics.length * 3,
         })
       }
       planData = { plan }

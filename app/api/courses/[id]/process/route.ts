@@ -157,13 +157,16 @@ Content: ${truncatedContent}`,
 
     const planDays = []
     if (daysUntilExam > 0) {
-      const topicsPerDay = Math.max(1, Math.ceil(topicNames.length / Math.min(daysUntilExam, topicNames.length)))
+      const totalDays = Math.min(daysUntilExam, 30)
+      const topicsPerDay = Math.ceil(topicNames.length / totalDays)
 
-      for (let i = 0; i < Math.min(daysUntilExam, 30); i++) {
+      for (let i = 0; i < totalDays; i++) {
         const date = new Date(today)
         date.setDate(date.getDate() + i)
-        const topicStart = (i * topicsPerDay) % topicNames.length
-        const dayTopics = topicNames.slice(topicStart, topicStart + topicsPerDay)
+        const startIdx = (i * Math.ceil(topicNames.length / totalDays)) % topicNames.length
+        const endIdx = Math.min(startIdx + Math.ceil(topicNames.length / totalDays), topicNames.length)
+        const sliced = topicNames.slice(startIdx, endIdx)
+        const dayTopics = sliced.length > 0 ? sliced : [topicNames[i % topicNames.length]]
 
         planDays.push({
           date: date.toISOString().split('T')[0],

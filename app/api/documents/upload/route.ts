@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import * as pdfParseModule from 'pdf-parse'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = (pdfParseModule as any).default ?? pdfParseModule
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,15 +41,18 @@ export async function POST(req: NextRequest) {
       try {
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
-        // Dynamic import to avoid SSR issues
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const pdfParse = require('pdf-parse')
         const pdfData = await pdfParse(buffer)
         content = pdfData.text
       } catch (pdfErr) {
         console.error('PDF parse error:', pdfErr)
-        // Fallback: use filename as content hint
-        content = `[PDF content from: ${file.name}] - PDF parsing failed, please try a different format.`
+        content = ''
+      }
+
+      if (!content || content.trim().length < 50) {
+        return NextResponse.json(
+          { error: 'Could not extract text from this PDF. Make sure it is not a scanned image PDF. Try a different file.' },
+          { status: 400 }
+        )
       }
     } else if (fileType.startsWith('image/')) {
       // For images, we store a placeholder — in production you'd use Claude's vision API
