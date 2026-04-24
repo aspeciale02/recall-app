@@ -7,8 +7,9 @@ import StudyPlanTab from './tabs/StudyPlanTab'
 import PracticeTab from './tabs/PracticeTab'
 import VoiceTestTab from './tabs/VoiceTestTab'
 import ProgressTab from './tabs/ProgressTab'
+import FlashcardsTab from './tabs/FlashcardsTab'
 
-type Tab = 'plan' | 'practice' | 'voice' | 'progress'
+type Tab = 'plan' | 'practice' | 'voice' | 'flashcards' | 'progress'
 
 interface Props {
   course: Course
@@ -44,6 +45,7 @@ export default function CourseClient({ course, topics, questions, studyPlan, ans
     { key: 'plan', label: 'Study Plan', icon: '🗓️' },
     { key: 'practice', label: 'Practice', icon: '✍️' },
     { key: 'voice', label: 'Voice Test', icon: '🎙️' },
+    { key: 'flashcards', label: 'Flashcards', icon: '🃏' },
     { key: 'progress', label: 'Progress', icon: '📈' },
   ]
 
@@ -145,6 +147,20 @@ export default function CourseClient({ course, topics, questions, studyPlan, ans
         )}
         {activeTab === 'voice' && (
           <VoiceTestTab
+            course={course}
+            topics={localTopics}
+            questions={localQuestions}
+            userId={userId}
+            onTopicUpdate={(updatedTopic) => {
+              setLocalTopics(prev => prev.map(t => t.id === updatedTopic.id ? updatedTopic : t))
+            }}
+            onQuestionUpdate={(updatedQuestion) => {
+              setLocalQuestions(prev => prev.map(q => q.id === updatedQuestion.id ? updatedQuestion : q))
+            }}
+          />
+        )}
+        {activeTab === 'flashcards' && (
+          <FlashcardsTab
             course={course}
             topics={localTopics}
             questions={localQuestions}
