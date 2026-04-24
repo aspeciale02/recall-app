@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import * as pdfParseModule from 'pdf-parse'
+import Anthropic from '@anthropic-ai/sdk'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = (pdfParseModule as any).default ?? pdfParseModule
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,9 +57,46 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         )
       }
-    } else if (fileType.startsWith('image/')) {
-      // For images, we store a placeholder — in production you'd use Claude's vision API
-      content = `[Image content from: ${file.name}] - This appears to be lecture slide imagery. Topics and content may be extracted manually.`
+    } else if (fileType === 'image/jpeg' || fileType === 'image/png' || fileType === 'image/webp' || fileType === 'image/gif') {
+      // Reject images over 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        return NextResponse.json({ error: 'Image too large. Max size is 5MB.' }, { status: 400 })
+      }
+
+      // Use Claude vision to extract content from the image
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        const base64 = buffer.toString('base64')
+        const mediaType = fileType as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif'
+
+        const response = await anthropic.messages.create({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 4096,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: mediaType, data: base64 }
+              },
+              {
+                type: 'text',
+                text: 'Extract all text and content from this image. This is a student\'s study material — handwritten notes, lecture slides, or whiteboard photo. Transcribe everything you can see, preserving structure. Return plain text only.'
+              }
+            ]
+          }]
+        })
+
+        content = response.content[0].type === 'text' ? response.content[0].text : ''
+      } catch (visionErr) {
+        console.error('Vision extraction error:', visionErr)
+        content = ''
+      }
+
+      if (!content || content.length < 20) {
+        return NextResponse.json({ error: 'Could not extract content from image. Try a clearer photo.' }, { status: 400 })
+      }
     } else {
       // Try to read as text
       content = await file.text()
