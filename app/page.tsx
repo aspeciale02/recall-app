@@ -1,4 +1,5 @@
 import Link from "next/link";
+import WaitlistForm from "./components/WaitlistForm";
 
 export default function LandingPage() {
   return (
@@ -53,6 +54,12 @@ export default function LandingPage() {
               Start studying free
             </Link>
             <p className="text-sm text-gray-500">No credit card. Works with any PDF or photo.</p>
+            <p className="text-sm text-gray-500">
+              Already signed up?{" "}
+              <Link href="/login" className="text-blue-400 underline">
+                Sign in →
+              </Link>
+            </p>
           </div>
         </div>
 
@@ -273,6 +280,19 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Waitlist */}
+      <section className="py-20 px-6">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+            Early access open
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-3">Be first in line</h2>
+          <p className="text-white/50 mb-8 text-sm">Join students already on the waitlist. Get early access before we open to everyone.</p>
+          <WaitlistForm />
         </div>
       </section>
 
